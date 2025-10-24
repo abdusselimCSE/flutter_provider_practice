@@ -1,5 +1,21 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:state_management_provider/app/set_up_dio.dart';
+import 'package:state_management_provider/core/network_executor/error_mapper/default_error_mapper.dart';
+import 'package:state_management_provider/core/network_executor/models/request_model.dart';
+import 'package:state_management_provider/core/network_executor/network_executor.dart';
+
+Dio dio = getDioInstance();
+NetworkExecutor networkExecutor = NetworkExecutor(
+  dio: dio,
+  errorMapper: DefaultErrorMapper(
+    onUnauthorize: () {
+      //if user already in login page
+      //logout from app
+    },
+  ),
+);
 
 void main() {
   runApp(ChangeNotifierProvider(create: (_) => CounterModel(), child: MyApp()));
@@ -15,11 +31,17 @@ class MyApp extends StatelessWidget {
 }
 
 //HomeScreen
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
   Widget build(BuildContext context) {
+    networkExecutor.getRequest(RequestModel(path: 'sfdasfsa'));
     return Scaffold(
       appBar: AppBar(
         title: Text("Provider Counter App"),
