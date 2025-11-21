@@ -40,6 +40,7 @@ dependencies:
   dio: ^5.9.0
   logger: ^2.6.2
   dio_smart_retry: ^7.0.1
+  dartz: ^0.10.1
 
 dev_dependencies:
   flutter_test:
