@@ -2,8 +2,8 @@ import 'package:dartz/dartz.dart';
 import 'package:state_management_provider/core/network_executor/models/network_response.dart';
 import 'package:state_management_provider/core/network_executor/models/request_model.dart';
 import 'package:state_management_provider/core/network_executor/network_executor.dart';
-import 'package:state_management_provider/features/common/data/data_source/user_data_source.dart';
 import 'package:state_management_provider/features/common/domain/entities/api_error.dart';
+import 'package:state_management_provider/features/users/data/data_sources/user_data_source.dart';
 import 'package:state_management_provider/features/users/data/models/user_model.dart';
 
 class UserRemoteDataSource implements UserDataSource {

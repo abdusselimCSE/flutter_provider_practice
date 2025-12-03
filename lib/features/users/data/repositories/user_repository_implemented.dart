@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:state_management_provider/features/common/data/data_source/user_data_source.dart';
 import 'package:state_management_provider/features/common/domain/entities/api_error.dart';
+import 'package:state_management_provider/features/users/data/data_sources/user_data_source.dart';
 import 'package:state_management_provider/features/users/domain/entities/user.dart';
 import 'package:state_management_provider/features/users/domain/repositories/user_repository.dart';
 

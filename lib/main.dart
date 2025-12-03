@@ -1,36 +1,37 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:state_management_provider/app/set_up_dio.dart';
-import 'package:state_management_provider/core/network_executor/error_mapper/default_error_mapper.dart';
-import 'package:state_management_provider/core/network_executor/models/request_model.dart';
-import 'package:state_management_provider/core/network_executor/network_executor.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:state_management_provider/app/service_locator.dart';
 
-Dio dio = getDioInstance();
-NetworkExecutor networkExecutor = NetworkExecutor(
-  dio: dio,
-  errorMapper: DefaultErrorMapper(
-    onUnauthorize: () {
-      //if user already in login page
-      //logout from app
-    },
-  ),
-);
+import 'counter_cubit.dart';
 
 void main() {
-  runApp(ChangeNotifierProvider(create: (_) => CounterModel(), child: MyApp()));
+  WidgetsFlutterBinding.ensureInitialized();
+  setUpServiceLocator();
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(home: HomeScreen());
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-//HomeScreen
+class _MyAppState extends State<MyApp> {
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<CounterCubit>(create: (_) => CounterCubit()),
+        BlocProvider<CounterBloc>(create: (_) => CounterBloc()),
+      ],
+      child: const MaterialApp(title: 'Flutter Demo', home: HomeScreen()),
+    );
+  }
+
+  void doSomething() {}
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -39,68 +40,100 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool isEnable = false; // local/widget/Ephemeral
+
   @override
   Widget build(BuildContext context) {
-    networkExecutor.getRequest(RequestModel(path: 'sfdasfsa'));
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Provider Counter App"),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.mobile_friendly),
-            tooltip: "Mobile",
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Home')),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Consumer<CounterModel>(
-              builder: (context, value, child) {
-                return Text("Counter value ->> ${value._count}");
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Dark Mode'),
+                  Switch(
+                    value: isEnable,
+                    onChanged: (bool value) {
+                      isEnable = value;
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+            BlocBuilder<CounterBloc, int>(
+              builder: (context, value) {
+                return Text('$value');
               },
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                FloatingActionButton(
-                  onPressed: () {
-                    context.read<CounterModel>().increment();
-                  },
-                  child: Icon(Icons.add),
-                ),
-                FloatingActionButton(
-                  onPressed: () {
-                    context.read<CounterModel>().decrement();
-                  },
-                  child: Icon(Icons.remove),
-                ),
-              ],
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
+              },
+              child: const Text('Go to profile'),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.read<CounterBloc>().add(IncrementEvent());
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
-//CounterModel
-class CounterModel extends ChangeNotifier {
-  int _count = 0;
-  int get count => _count;
+// Type of state - Ephemeral, App state
 
-  void increment() {
-    _count++;
-    notifyListeners();
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: BlocBuilder<CounterBloc, int>(
+        builder: (context, int count) {
+          return Center(child: Text('$count'));
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.read<CounterBloc>().add(DecrementEvent());
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
   }
+}
 
-  void decrement() {
-    if (_count > 0) {
-      _count--;
-      notifyListeners();
-    }
+class SettingsScreen extends StatefulWidget {
+  SettingsScreen({super.key, required this.count, required this.updateCount});
+
+  int count;
+  final VoidCallback updateCount;
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: Center(child: Text('${widget.count}')),
+    );
   }
 }
