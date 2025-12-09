@@ -1,13 +1,40 @@
+import 'dart:async';
+import 'dart:ui';
+
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:state_management_provider/app/service_locator.dart';
 
 import 'counter_cubit.dart';
+import 'firebase_options.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  setUpServiceLocator();
-  runApp(MyApp());
+Future<void> main() async {
+  //Application logic/other runtime errors
+  runZonedGuarded<Future<void>>(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      setUpServiceLocator();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      //Flutter framework error
+      FlutterError.onError =
+          FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+      //Async errors of flutter framework
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+      runApp(MyApp());
+    },
+    (error, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: true);
+    },
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -43,6 +70,18 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isEnable = false; // local/widget/Ephemeral
 
   @override
+  void initState() {
+    super.initState();
+    FirebaseCrashlytics.instance.setUserIdentifier('rafat_meraz');
+    FirebaseCrashlytics.instance.setCustomKey('user_id', 'rafat_meraz');
+    FirebaseCrashlytics.instance.log("Entered Homescreen");
+    FirebaseAnalytics.instance.setUserProperty(
+      name: 'user_id',
+      value: 'sdfjsalfjlsaf',
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Home')),
@@ -58,6 +97,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   Switch(
                     value: isEnable,
                     onChanged: (bool value) {
+                      FirebaseAnalytics.instance.logEvent(
+                        name: "theme_changed",
+                        parameters: {
+                          'previous_value': "$isEnable",
+                          'new_value': '$value',
+                        },
+                      );
                       isEnable = value;
                       setState(() {});
                     },
@@ -72,6 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
+                FirebaseCrashlytics.instance.log(
+                  "Pressed go to profile button",
+                );
+                throw Exception("Amar iccha hoise tai dilam");
                 Navigator.push(
                   context,
                   MaterialPageRoute(
